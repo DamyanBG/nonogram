@@ -15,8 +15,11 @@ const enum MarkLock {
     COL = 2,
 }
 
+
+const initialNonogram = new Nonogram(10)
+
 const App = () => {
-    const [nonogram, setNonogram] = useState(() => new Nonogram(10));
+    const [nonogram, setNonogram] = useState(initialNonogram);
     const [nonogramHistory, setNonogramHistory] = useState<Nonogram[]>([]);
     const [mouseDown, setMouseDown] = useState(false);
     const [marking, setMarking] = useState(true);
@@ -29,6 +32,7 @@ const App = () => {
     const [markLock, setMarkLock] = useState(MarkLock.UNSET);
 
     useEffect(() => {
+        console.log("use effect in app")
         const handleMouseUp = () => {
             if (mouseDown) {
                 setMouseDown(false);
@@ -45,7 +49,7 @@ const App = () => {
             document.removeEventListener("mouseup", handleMouseUp);
             document.removeEventListener("keypress", handleFKeyPress);
         };
-    });
+    }, [mouseDown, marking]);
 
     const handleUndo = () => {
         if (nonogramHistory.length > 0) {
@@ -79,6 +83,7 @@ const App = () => {
     };
 
     const handleMouseOver = (x: number, y: number) => {
+        console.log("handleMouseOver")
         if (mouseDown) {
             if (x === clickCoords.column && y === clickCoords.row) {
                 return;
