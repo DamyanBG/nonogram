@@ -4,7 +4,7 @@ import './AppHeader.scss';
 const AppHeader = () => {
     return (
         <div className="App-header">
-            <div>nonogramm</div>
+            <div>Nonogramm</div>
             <a href="https://github.com/timonkobusch/nonogram-react-vite" target="_blank">
                 <IoLogoGithub size={'50px'} />
             </a>
