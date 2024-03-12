@@ -1,7 +1,7 @@
 import "components/App.scss";
 import NonogramGrid from "./NonogramGrid/NonogramGrid";
 import { Nonogram } from "modules/Nonogram";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import GameController from "components/GameController/GameController";
 import PlayController from "components/PlayController/PlayController";
 import useTimer from "components/utils/useTimer";
@@ -15,11 +15,10 @@ const enum MarkLock {
     COL = 2,
 }
 
-
-const initialNonogram = new Nonogram(10)
+const initialNonogramState = new Nonogram(10)
 
 const App = () => {
-    const [nonogram, setNonogram] = useState(initialNonogram);
+    const [nonogram, setNonogram] = useState(initialNonogramState);
     const [nonogramHistory, setNonogramHistory] = useState<Nonogram[]>([]);
     const [mouseDown, setMouseDown] = useState(false);
     const [marking, setMarking] = useState(true);
@@ -61,54 +60,58 @@ const App = () => {
         }
     };
 
-    const handleMouseDown = (x: number, y: number) => {
-        setNonogramHistory([...nonogramHistory, new Nonogram(nonogram)]);
-
-        const updatedGrid = new Nonogram(nonogram);
-        updatedGrid.click(x, y, marking);
-        setNonogram(updatedGrid);
-
-        // Set mouse state
-        setMouseDown(true);
-        setClickCoords({ row: y, column: x });
-        setMarkLock(MarkLock.UNSET);
-        if (nonogram.grid[x][y] === 0) {
-            setClearMode(false);
-        } else {
-            setClearMode(true);
-        }
-        if (updatedGrid.progress.isWon) {
-            pauseTimer();
-        }
-    };
-
-    const handleMouseOver = (x: number, y: number) => {
-        console.log("handleMouseOver")
-        if (mouseDown) {
-            if (x === clickCoords.column && y === clickCoords.row) {
-                return;
-            }
-            if (markLock === MarkLock.UNSET) {
-                if (x === clickCoords.column) {
-                    setMarkLock(MarkLock.COL);
-                } else if (y === clickCoords.row) {
-                    setMarkLock(MarkLock.ROW);
-                }
-            }
-            if (markLock === MarkLock.COL) {
-                x = clickCoords.column;
-            } else if (markLock === MarkLock.ROW) {
-                y = clickCoords.row;
-            }
-
-            const updatedGrid = new Nonogram(nonogram as Nonogram);
-            updatedGrid.setCell(x, y, marking, clearMode);
+    const handleMouseDown = useMemo(() => {
+        return (x: number, y: number) => {
+            setNonogramHistory([...nonogramHistory, new Nonogram(nonogram)]);
+    
+            const updatedGrid = new Nonogram(nonogram);
+            updatedGrid.click(x, y, marking);
             setNonogram(updatedGrid);
+    
+            // Set mouse state
+            setMouseDown(true);
+            setClickCoords({ row: y, column: x });
+            setMarkLock(MarkLock.UNSET);
+            if (nonogram.grid[x][y] === 0) {
+                setClearMode(false);
+            } else {
+                setClearMode(true);
+            }
             if (updatedGrid.progress.isWon) {
                 pauseTimer();
             }
-        }
-    };
+        };
+    }, [nonogram, marking, nonogramHistory, pauseTimer])
+
+    const handleMouseOver = useMemo(() => {
+        return (x: number, y: number) => {
+            if (mouseDown) {
+                if (x === clickCoords.column && y === clickCoords.row) {
+                    return;
+                }
+                if (markLock === MarkLock.UNSET) {
+                    if (x === clickCoords.column) {
+                        setMarkLock(MarkLock.COL);
+                    } else if (y === clickCoords.row) {
+                        setMarkLock(MarkLock.ROW);
+                    }
+                }
+                if (markLock === MarkLock.COL) {
+                    x = clickCoords.column;
+                } else if (markLock === MarkLock.ROW) {
+                    y = clickCoords.row;
+                }
+    
+                const updatedGrid = new Nonogram(nonogram as Nonogram);
+                updatedGrid.setCell(x, y, marking, clearMode);
+                setNonogram(updatedGrid);
+                if (updatedGrid.progress.isWon) {
+                    pauseTimer();
+                }
+            }
+        };
+    }, [clearMode, clickCoords.column, clickCoords.row, markLock, nonogram, mouseDown, marking, pauseTimer])
+
     const handleGenerate = (size: number) => {
         if (size <= 25) {
             setNonogram(new Nonogram(size));
@@ -149,6 +152,18 @@ const App = () => {
         }
         setgameRunning(!gameRunning);
     };
+
+    const memoizedNonogramGrid = useMemo(() => {
+        console.log("rerender the grid")
+        return (
+            <NonogramGrid
+                nonogram={nonogram}
+                onMouseDownHandler={handleMouseDown}
+                onMouseOverHandler={handleMouseOver}
+                gameRunning={gameRunning}
+            />
+        )
+    }, [gameRunning, handleMouseDown, handleMouseOver, nonogram])
     // TODO - Loading spinner and telling puzzle tries
     // TODO - Performance
     // TODO - Stop timer while loading
@@ -180,12 +195,7 @@ const App = () => {
                     />
                     <About />
                 </div>
-                <NonogramGrid
-                    nonogram={nonogram}
-                    onMouseDownHandler={handleMouseDown}
-                    onMouseOverHandler={handleMouseOver}
-                    gameRunning={gameRunning}
-                />
+                {memoizedNonogramGrid}
             </div>
         </div>
     );
