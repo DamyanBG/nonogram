@@ -1,6 +1,6 @@
 import "components/NonogramGrid//NonogramGrid.scss";
 import { Nonogram } from "modules/Nonogram";
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 
 interface IHintsProps {
     hintLines: number[][];
@@ -49,14 +49,14 @@ interface INonogramGridProps {
 }
 
 const NonogramRows = ({ selectedCell, gameRunning, nonogram, handleMouseDown, handleMouseOver, handleMouseLeave }) => {
-    console.log("render Rows component")
+    // console.log("render Rows component")
     const sizedArray = useMemo(() => {
         console.log("render sized array")
         return Array.from({ length: nonogram.size })
     }, [nonogram.size])
 
     const rows = useMemo(() => {
-        console.log("render rows")
+        // console.log("render rows")
         return sizedArray.map((_, row) => (
             <tr key={row} className="row">
                 <NonogramCells
@@ -76,13 +76,17 @@ const NonogramRows = ({ selectedCell, gameRunning, nonogram, handleMouseDown, ha
 }
 
 const NonogramCells = ({ selectedCell, gameRunning, nonogram, handleMouseDown, handleMouseOver, handleMouseLeave, row }) => {
+    useEffect(() => {
+        console.log("initial rendering")
+    }, [])
+
     const sizedArray = useMemo(() => {
         console.log("render sized array in cells")
         return Array.from({ length: nonogram.size })
     }, [nonogram.size])
 
     const cells = useMemo(() => {
-        console.log("create cells")
+        // console.log("create cells")
         return sizedArray.map((_, col) => {
             const fifthRowBorder =
                 row === 4 ? "fifth-row" : "";
@@ -147,7 +151,7 @@ const NonogramCells = ({ selectedCell, gameRunning, nonogram, handleMouseDown, h
 const NonogramGrid = ({
     nonogram,
     onMouseDownHandler,
-    onMouseOverHandler,
+        onMouseOverHandler,
     gameRunning,
 }: INonogramGridProps) => {
     const [selectedCell, setSelectedCell] = useState<{
@@ -171,7 +175,7 @@ const NonogramGrid = ({
         };
 
     const handleMouseLeave = () => {
-        console.log("mouseLeave")
+        // console.log("mouseLeave")
         setSelectedCell({ row: -1, column: -1 });
     };
 
