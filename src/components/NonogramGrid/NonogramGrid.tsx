@@ -1,6 +1,6 @@
 import "components/NonogramGrid//NonogramGrid.scss";
 import { Nonogram } from "modules/Nonogram";
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 
 interface IHintsProps {
     hintLines: number[][];
@@ -81,21 +81,33 @@ const NonogramGrid = ({
         ? `grid-${nonogram.size}x${nonogram.size}`
         : "grid-15x15";
 
-    return (
-        <div className={`content ${sizeClass}`}>
+    const topHints = useMemo(() => {
+        return (
+            <Hints
+                hintLines={nonogram.hints.columns}
+                finishedLines={nonogram.finishedLines.columns}
+                gameRunning={gameRunning && !nonogram.progress.isWon}
+                classIdentifier={"top-hints"}
+            />
+        )
+    }, [nonogram.hints.columns, nonogram.finishedLines.columns, gameRunning, nonogram.progress.isWon])
+
+    const leftHints = useMemo(() => {
+        return (
             <Hints
                 hintLines={nonogram.hints.rows}
                 finishedLines={nonogram.finishedLines.rows}
                 gameRunning={gameRunning && !nonogram.progress.isWon}
                 classIdentifier={"left-hints"}
             />
+        )
+    }, [nonogram.hints.rows, nonogram.finishedLines.rows, gameRunning, nonogram.progress.isWon])
+
+    return (
+        <div className={`content ${sizeClass}`}>
+            {leftHints}
             <table>
-                <Hints
-                    hintLines={nonogram.hints.columns}
-                    finishedLines={nonogram.finishedLines.columns}
-                    gameRunning={gameRunning && !nonogram.progress.isWon}
-                    classIdentifier={"top-hints"}
-                />
+                {topHints}
                 <tbody className="table">
                     {Array.from({ length: nonogram.size }).map((_, row) => {
 
